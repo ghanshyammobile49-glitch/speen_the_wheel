@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghanshyam Mobile Shop | Spin & Win</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #5e60ce, #4361ee, #3a0ca3);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Poppins", sans-serif;
+    color: #fff;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    text-shadow: 0 0 15px rgba(255,255,255,0.5);
+}
+
+p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #e8e8e8;
+}
+
+.wheel-container {
+    position: relative;
+    width: 80vw; 
+    max-width: 350px;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+}
+
+.arrow {
+    position: absolute;
+    left: 350px;   /* distance from wheel */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 18px solid transparent;
+    border-bottom: 18px solid transparent;
+    border-right: 35px solid #FFD93D; /* arrow points left */
+    filter: drop-shadow(0 0 10px #FFD93D);
+    animation: arrowGlow 1.5s infinite alternate;
+}
+
+@keyframes arrowGlow {
+    0% { filter: drop-shadow(0 0 5px #FFD93D); }
+    100% { filter: drop-shadow(0 0 20px #FFEA00); }
+}
+
+#spin {
+    margin-top: 20px;
+    background: linear-gradient(45deg, #FF416C, #FF4B2B, #FFD93D);
+    border: none;
+    border-radius: 40px;
+    padding: 10px 25px;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 65, 108, 0.5);
+    animation: glow 3s infinite alternate;
+    transition: 0.3s;
+}
+#spin:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 65, 108, 1);
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 15px #FFD93D; }
+    100% { box-shadow: 0 0 25px #FF4B2B; }
+}
+
+/* Popup Styles */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, #FF4B2B, #FF416C, #FFD93D);
+    color: #fff;
+    padding: 30px 50px;
+    border-radius: 20px;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    z-index: 999;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    animation: popupShow 0.6s ease forwards;
+}
+.popup button {
+    margin-top: 15px;
+    padding: 10px 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    color: #FF416C;
+    box-shadow: 0 0 15px rgba(255, 65, 108, 0.6);
+    transition: 0.3s;
+}
+.popup button:hover {
+    background: #FFD93D;
+    color: #000;
+}
+
+@keyframes popupShow {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    80% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+</style>
+</head>
+<body>
+
+<h1>📱 GHANSHYAM MOBILE SHOP 📱</h1>
+<p>🤩 Spin the wheel and win your surprise gift! 😍</p>
+
+<div class="wheel-container">
+    <div class="arrow"></div> 
+    <canvas class="wheel" id="wheel"></canvas>
+</div>
+
+<button id="spin">🎁 Spin Now</button>
+
+<script>
+const wheelCanvas = document.getElementById("wheel");
+const ctx = wheelCanvas.getContext("2d");
+
+function resizeCanvas() {
+    let size = Math.min(window.innerWidth * 0.8, 400);
+    wheelCanvas.width = size;
+    wheelCanvas.height = size;
+    drawWheel();
+}
+window.addEventListener("resize", resizeCanvas);
+
+const segments = [
+    "🎧 Noise Burds",
+    "💎 Boat Neckband",
+    "🎧 Realme Buds",
+    "📱 Cover",
+    "🛡️ Tuffon",
+    " Cable",
+    "🎧 Mivi Neckband",
+    "🎧 KDM Neckband",
+    "🎧 Earphone"
+];
+const colors = ["#9C27B0","#673AB7","#3F51B5","#2196F3","#00BCD4","#009688","#4CAF50","#8BC34A","#CDDC39"];
+let arcSize = (2 * Math.PI) / segments.length;
+let currentRotation = 0;
+
+// Weighted pool for higher chance items
+const weightedPool = [
+    "📱 Cover","📱 Cover","📱 Cover","📱 Cover",
+    "🛡️ Tuffon","🛡️ Tuffon","🛡️ Tuffon","🛡️ Tuffon",
+    " Cable"," Cable"," Cable"," Cable",
+    "🎧 Earphone","🎧 Earphone","🎧 Earphone","🎧 Earphone",
+    "🎧 Noise Burds",
+    "💎 Boat Neckband",
+    "🎧 Realme Buds",
+    "🎧 Mivi Neckband",
+    "🎧 KDM Neckband"
+];
+
+function drawWheel() {
+    const radius = wheelCanvas.width / 2 - 10;
+    const center = wheelCanvas.width / 2;
+    ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+    for (let i = 0; i < segments.length; i++) {
+        const angle = i * arcSize + currentRotation;
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, angle, angle + arcSize);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${Math.max(12, wheelCanvas.width/25)}px Poppins`;
+        ctx.textAlign = "right";
+        ctx.fillText(segments[i], radius - 10, 5);
+        ctx.restore();
+    }
+}
+resizeCanvas();
+
+// Popup function
+function showPopup(prize) {
+    const popup = document.createElement("div");
+    popup.className = "popup";
+    popup.innerHTML = `<p>🎉 Congratulations! You won:<br><strong>${prize}</strong></p>
+                       <button onclick="closePopup()">OK</button>`;
+    document.body.appendChild(popup);
+}
+
+// Close popup and redirect
+function closePopup() {
+    const popup = document.querySelector(".popup");
+    if (popup) popup.remove();
+    // Redirect to Thank You page
+    window.location.href = "https://www.instagram.com/ghanshyam_mobileshop?igsh=MXd5NDA5b2x6eTd1Yg==&utm_source=ig_contact_invite"; // change to your page URL
+}
+
+// Spin function
+document.getElementById("spin").addEventListener("click", () => {
+    let chosenPrize = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    let prizeIndex = segments.indexOf(chosenPrize);
+
+    let randomSpins = 5; 
+    let targetAngle = (prizeIndex * arcSize) + (arcSize / 2);
+    let finalRotation = (2 * Math.PI * randomSpins) - targetAngle;
+
+    let duration = 5000;
+    let start = null;
+
+    function animateSpin(timestamp) {
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let easeOut = 1 - Math.pow(1 - progress / duration, 3);
+
+        currentRotation = finalRotation * easeOut;
+        drawWheel();
+
+        if (progress < duration) {
+            requestAnimationFrame(animateSpin);
+        } else {
+            currentRotation = finalRotation;
+            drawWheel();
+            setTimeout(() => showPopup(chosenPrize), 500);
+        }
+    }
+    requestAnimationFrame(animateSpin);
+});
+</script>
+</body>
+</html>
